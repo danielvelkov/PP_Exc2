@@ -10,15 +10,29 @@ using When_All_Test.Model;
 
 namespace When_All_Test
 {
-    class CustomersList:NotifyPropertChanged
+    class CustomersList:NPC
     {
         Random seed = new Random();
-        ObservableCollection<Customer> customers;
-        ObservableCollection<Customer> searchedCustomers;
+        List<Customer> customers;
+        List<Customer> searchedCustomers;
         string ids;
 
-        public ObservableCollection<Customer> Customers { get => customers; set => customers = value; }
-        public ObservableCollection<Customer> SearchedCustomers { get => searchedCustomers; set => searchedCustomers = value; }
+        public List<Customer> Customers { get => customers; set => customers = value; }
+        public List<Customer> SearchedCustomers
+        {
+            get
+            {
+                return searchedCustomers;
+            }
+            set
+            {
+                if (searchedCustomers != value)
+                {
+                    searchedCustomers = value;
+                    NotifyPropertyChanged("SearchedCustomers");
+                }
+            }
+        }
         public string TextIds {
             get
             {
@@ -37,8 +51,8 @@ namespace When_All_Test
 
         public CustomersList()
         {
-            SearchedCustomers = new ObservableCollection<Customer>();
-            Customers = new ObservableCollection<Customer>()
+            SearchedCustomers = new List<Customer>();
+            Customers = new List<Customer>()
             {
                 new Customer(1,"Bibo baggins","nowher strt",1),
                 new Customer(2,"frodo","nowher blv",3),
@@ -65,7 +79,7 @@ namespace When_All_Test
 
         
 
-        public async Task<Customer> GetCustomer(int Id)
+        public async Task<Customer> GetCustomerAsync(int Id)
         {
             await Task.Delay(seed.Next(100, 1000));
             return Customers.SingleOrDefault(x => x.Id == Id);
@@ -73,37 +87,38 @@ namespace When_All_Test
 
         public async Task<Customer[]> GetCustomersAsync(List<int> Ids)
         {
-            List<Task> tasks = new List<Task>();
+            List<Task<Customer>> tasks = new List<Task<Customer>>();
             foreach (int id in Ids)
             {
-                Task<Customer> t = GetCustomer(id);
-                tasks.Add(t);
-
+                tasks.Add(GetCustomerAsync(id));
             }
-            Task t=await Task.WhenAll(tasks);
-            return 
+            return await Task.WhenAll(tasks);
         }
 
-
-        AsyncCommand getCust;
+        AsyncCommand getCustByMultIdsAsync;
         public AsyncCommand GetCust {
             get
             {
-                return getCust ?? (getCust = new AsyncCommand(PutCust, () => { return true; }));
+                return getCustByMultIdsAsync ?? (getCustByMultIdsAsync = new AsyncCommand(DisplayCustAsync, () => { return true; }));
             }
         }
 
-        public async Task PutCust()
+        public async Task DisplayCustAsync()
         {
             List<string> IDS = TextIds.Split(',').ToList();
             List<int> intIds = new List<int>();
             foreach (string id in IDS)
             {
-                intIds.Add(Int32.Parse(id));
+                try
+                {
+                    intIds.Add(Int32.Parse(id));
+                }
+                catch
+                {
+                    intIds.Add(-1);
+                }
             }
-            SearchedCustomers= await GetCustomersAsync(intIds);
+            SearchedCustomers= (await GetCustomersAsync(intIds)).ToList();
         }
-
-
     }
 }
