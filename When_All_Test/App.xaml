@@ -1,0 +1,10 @@
+﻿<Application x:Class="When_All_Test.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:When_All_Test"
+             xmlns:view="clr-namespace:When_All_Test.View"
+             StartupUri="View/FindCustWindow.xaml">
+    <Application.Resources>
+         
+    </Application.Resources>
+</Application>
